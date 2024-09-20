@@ -5,7 +5,7 @@ from sklearn.svm import SVC
 from joblib import dump, load
 import os
 from scipy.spatial.distance import braycurtis
-from language.language import get_embeddings
+from chat.language.language import get_embeddings
 
 
 class DialogueActClassifier:

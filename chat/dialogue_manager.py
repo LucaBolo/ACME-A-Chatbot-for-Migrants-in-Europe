@@ -5,11 +5,13 @@ import replicate
 import re
 import json
 
+from queue import Queue
+from chat.new_controller import Controller
 from chat.argumentation import ArgumentationManager
 
 dialogue_blueprint = Blueprint('dialogue_manager', __name__)
 arg_manager = ArgumentationManager()
-
+controller = Controller(Queue(), None)
 
 # Reads the prompt for Llama from a txt file
 def get_system_prompt():
@@ -47,7 +49,7 @@ def get_node_from_llama2(sentence: str):
     system_prompt = get_system_prompt()
 
     # Initializing the API key
-    os.environ["REPLICATE_API_TOKEN"] = "..."
+    os.environ["REPLICATE_API_TOKEN"] = "r8_bIcAUWQBzTamWWrEcClxnx0Ndznp0Mq1bqThu"
 
     # Creating the input for Llama2
     input = {
@@ -87,9 +89,38 @@ def get_node_from_llama2(sentence: str):
 
 @dialogue_blueprint.route("/", methods=("GET",))
 def start_conversation():
-    return {"data": """Hello, I will help you decide whether you can apply for some form of protection on the italian territory. 
-        You may share with me any information about yourself and your story. All the information will never leave your device.\n
-        Start by telling me something about you and then I will ask you some questions. Tell me if you don't understand the question!"""}
+    
+    initial_msg ={"data": """Hello, I will help you decide whether you can apply for some form of protection on the italian territory. 
+                                You may share with me any information about yourself and your story. All the information will never leave your device.\n
+                                Start by telling me something about you and then I will ask you some questions. Tell me if you don't understand the question!""",
+            }
+
+    controller.start_conversation(initial_msg)
+
+    nodes_info = {
+            "uomo": "Male",
+            "donna": "Female",
+            "woodo": "Victim of Voodoo ritual",
+            "livIstrBasso": "Low education level",
+            "condEconPr": "Precarious economic conditions",
+            "condViaggio": "Issues during the journey",
+            "minacce": "Threats",
+            "provNigeria": "Nigerian",
+            "violenza": "Victim of violence",
+            "madame": "Victim of human trafficking",
+            "orientamentoOmos": "Homosexuality",
+            "nonProtezioneStato": "Protection denied in home country",
+            "lavoroAttuale": "Has a job",
+            "documentazioneLavorativa": "Has employment documentation",
+            "vulnerabilita": "Vulnerable subject"
+        }
+
+
+    initial_msg['nodes'] = [{"id": id, "name": name, "status":0} for id,name in nodes_info.items()]
+
+
+    return initial_msg
+
 
 
 @dialogue_blueprint.route("/sentences", methods=("GET",))
@@ -99,8 +130,10 @@ def get_kb_sentences():
 
 @dialogue_blueprint.route("/chat", methods=("GET",))
 def chat():
-    usr_intent = request.args["usr_intent"]
-    usr_msg = request.args.getlist("usr_msg")
+    
+    usr_msg, usr_intent = controller.closest_embeddings(request.args["message"])
+    reply = None
+    
     if usr_intent == 'yes':
         # user responded affirmatively to question
         # we look for a sentence in the node containing the question with positive class
@@ -112,7 +145,7 @@ def chat():
             print(usr_msg_to_send)
             print("END LLAMA")
             if usr_msg_to_send.lower() == 'unidentified':
-                return {"data": "I didn't understand your answer, could you repeat?"}
+                reply = "I didn't understand your answer, could you repeat?"
         usr_msg = [usr_msg_to_send]
 
     elif usr_intent == 'no':
@@ -127,17 +160,30 @@ def chat():
             print("FOUND WITH LLAMA")
             print(usr_msg_to_send)
             print("END LLAMA")
-            if usr_msg_to_send == 'Unidentified':
-                return {"data": "I didn't understand your answer, could you repeat?"}
+            if usr_msg_to_send.lower() == 'unidentified':
+                reply = "I didn't understand your answer, could you repeat?"
         usr_msg = [usr_msg_to_send]
 
-    reply = arg_manager.choose_reply(usr_msg)
+    print("message before choose_reply", usr_msg)
+    
+    if reply == None:
+        reply = arg_manager.choose_reply(usr_msg)
 
-    return {"data": reply, "history_args": arg_manager.history_args, "history_replies": arg_manager.history_replies}
+    answer = {"data": reply, 
+              "history_args": arg_manager.history_args, 
+              "history_replies": arg_manager.history_replies,
+              "activated_node": arg_manager.history_args[-1]
+              }
+
+    controller.post_chat_process(answer)
+
+    return answer
 
 
 @dialogue_blueprint.route("/close", methods=("GET",))
 def clear_history():
+    res = {"data": "QUIT"}
     arg_manager.clear()
+    controller.stop_conversation(res)
 
-    return {"data": "QUIT"}
+    return res

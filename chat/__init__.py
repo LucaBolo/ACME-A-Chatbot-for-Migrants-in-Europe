@@ -1,11 +1,14 @@
 import os
 from flask import Flask
+from flask_cors import CORS, cross_origin
 
 from chat.dialogue_manager import dialogue_blueprint
 
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
+    cors = CORS(app)
+    app.config['CORS_HEADERS'] = 'Content-Type'
 
     if test_config is None:
         # load the instance config, if it exists, when not testing

@@ -50,10 +50,12 @@ class ArgumentationManager:
         discarded_replies = []
         for arg in self.history_args:
             endorsed_replies = self.arg_graph.get_replies_endorsed_by_argument(arg)
+
             for endorsed_reply in endorsed_replies:
                 if (reply != endorsed_reply and endorsed_reply not in discarded_replies):
                     discarded_replies.append(endorsed_reply)
 
+        print(f"Discarded Replies: {discarded_replies}, Reply: {reply}")
 
         supporting_args_sentences = [self.arg_graph.get_arg_sentence(why) for why in self.explain_why_reply(reply)]
 
@@ -90,10 +92,14 @@ class ArgumentationManager:
         if reply not in self.explanation_dictionary.keys():
             self.explanation_dictionary[reply] = "You might get the " + str(replies_dict[reply]) + ' because ' + ', '.join([replace_template(supporting_arg_sentence) for supporting_arg_sentence in supporting_args_sentences]) + '\n'
 
+        why_not_refugee_status = []
+        
         # Removing double explanation for no refugee status, leaving the one with longer explanation
         if reply != "statRifProtSussU" and reply != "statRifProtSuss" and "statRifProtSussU" in discarded_replies and "statRifProtSuss" in discarded_replies:
+            
             why_not_man = self.explain_why_not_reply("statRifProtSussU")
             why_not_woman = self.explain_why_not_reply("statRifProtSuss")
+
             if len(why_not_man) > len(why_not_woman):
                 discarded_replies.remove("statRifProtSuss")
             else:
@@ -110,14 +116,17 @@ class ArgumentationManager:
                 why_not_refugee_status.remove("donna")
 
         for discarded_reply in discarded_replies:
-            if (reply == "statRifProtSussU" and discarded_reply != "statRifProtSuss") or (reply == "statRifProtSuss" and discarded_reply != "statRifProtSussU") or (reply != "statRifProtSussU" and reply != "statRifProtSuss"):
+            if ((reply == "statRifProtSussU" and discarded_reply != "statRifProtSuss") or 
+               (reply == "statRifProtSuss" and discarded_reply != "statRifProtSussU") or
+               (reply != "statRifProtSussU" and reply != "statRifProtSuss")):
+                
                 if discarded_reply not in self.explanation_dictionary.keys():
-                    if discarded_reply == "statRifProtSussU" or discarded_reply == "statRifProtSuss":
+                    if (discarded_reply == "statRifProtSussU" or discarded_reply == "statRifProtSuss") and why_not_refugee_status != []:
                         whynots = why_not_refugee_status
                     else:
                         whynots = self.explain_why_not_reply(discarded_reply)
                     if len(whynots) > 0:
-                        explanation += f"You might not {self.arg_graph.get_arg_sentence(discarded_reply).lower().replace('you might ', '')} because \n"
+                        explanation += f"\nYou might not {self.arg_graph.get_arg_sentence(discarded_reply).lower().replace('you might ', '')} because \n"
                         for whynot in whynots:
 
                             explanation += replace_template(self.arg_graph.get_arg_sentence(whynot)) + "\n"
@@ -190,7 +199,7 @@ class ArgumentationManager:
 
         for sentence in user_msg:
             arg_node = self.arg_graph.get_node_containing_sentence(sentence)
-            
+            print(f'Arg node selected: {arg_node}')
             if self.is_conflict_free(arg_node):
                 self.add_argument(arg_node)
 

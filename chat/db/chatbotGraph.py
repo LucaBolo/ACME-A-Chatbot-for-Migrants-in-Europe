@@ -200,19 +200,22 @@ class ImmigrationGraph:
         return set(filter(lambda next: (self.graph.edges[arg, next]["type"] == "endorse" and next in self.replies), nexts))
 
     def get_node_containing_sentence(self, sentence: str):
-
+       
         for node, prop in self.graph.nodes.data():
-
-            if sentence in prop["sentences"]:
+            
+            if sentence.lower() in list(map(str.lower, prop["sentences"])):
                 return node
+            
         return None
 
     def get_sentence_corresponding_question(self, question: str, _class: str):
 
         arg_nodes = self.get_arg_nodes_labels()
+
         for arg_node in arg_nodes:
             if question == self.graph.nodes[arg_node]["question"] and _class == self.graph.nodes[arg_node]["class"]:
                 return self.get_arg_sentence(arg_node)
+            
         return None
 
 
