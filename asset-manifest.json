@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/ACME-A-Chatbot-for-Migrants-in-Europe/static/css/main.36807db3.css",
+    "main.js": "/ACME-A-Chatbot-for-Migrants-in-Europe/static/js/main.59aa3ceb.js",
+    "static/js/453.419a5d54.chunk.js": "/ACME-A-Chatbot-for-Migrants-in-Europe/static/js/453.419a5d54.chunk.js",
+    "index.html": "/ACME-A-Chatbot-for-Migrants-in-Europe/index.html",
+    "main.36807db3.css.map": "/ACME-A-Chatbot-for-Migrants-in-Europe/static/css/main.36807db3.css.map",
+    "main.59aa3ceb.js.map": "/ACME-A-Chatbot-for-Migrants-in-Europe/static/js/main.59aa3ceb.js.map",
+    "453.419a5d54.chunk.js.map": "/ACME-A-Chatbot-for-Migrants-in-Europe/static/js/453.419a5d54.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.36807db3.css",
+    "static/js/main.59aa3ceb.js"
+  ]
+}
