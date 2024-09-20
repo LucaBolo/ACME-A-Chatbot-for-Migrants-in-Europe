@@ -49,7 +49,7 @@ def get_node_from_llama2(sentence: str):
     system_prompt = get_system_prompt()
 
     # Initializing the API key
-    os.environ["REPLICATE_API_TOKEN"] = "r8_bIcAUWQBzTamWWrEcClxnx0Ndznp0Mq1bqThu"
+    os.environ["REPLICATE_API_TOKEN"] = "..."
 
     # Creating the input for Llama2
     input = {
